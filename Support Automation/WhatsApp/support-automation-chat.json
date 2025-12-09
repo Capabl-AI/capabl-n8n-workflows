@@ -1,0 +1,2144 @@
+{
+  "name": "support-automation-chat",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1328002931,
+          "mode": "list",
+          "cachedResultName": "Chat History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=1328002931"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Number",
+              "lookupValue": "={{ $json.contacts[0].wa_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -4272,
+        3424
+      ],
+      "id": "58995d9a-e85f-45fd-9351-f866d59ecd50",
+      "name": "Fetch chat history",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -4032,
+        3424
+      ],
+      "id": "8f7164e3-7a85-4933-85fc-9a6aaeeebb3c",
+      "name": "Combine Chat History"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Chat History:\n\n{{ JSON.stringify($('Combine Chat History').item.json.data) }}\n\nBody:\n\n{{ $('WhatsApp Trigger').first().json.messages[0].text.body }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a customer support assistant for an educational service that sells course seats.\n\nYour task is to process incoming user messages and classify or respond according to the following rules:\n\n1. Determine which course the user is referring to.  \n    - If the course name is not mentioned in the chat history, and the user’s message is about a refund or seat transfer, ask the user to mention the course name. Also if the message is about seat transfer, then as for user's email (which they used for registration), phone number, transferee's name, transferee's email, transferee's phone number. Ask for the information in a professional mail asking for information politely without using salutations or adding a subject.\n\n    - If the user’s message is not about a refund or seat transfer, and the course name is missing, proceed without asking for the course name.\n\n    - Proceed with refund and seat transfer logic only if the course name is either \"AI Saksham\" or \"EV Saksham\".\n\n2. Identify if the user’s message is about:\n   - Refund request\n   - Seat transfer\n   - Other support-related query (technical issue, inquiry, or general help)\n   - Irrelevant message (not related to support, e.g., personal chat)\n\n3. If the message is a refund request:\n   - Output exactly: \"refund\"\n   - Do not ask any follow up questions.\n\n4. If the message is a seat transfer request:\n   - Only apply this rule if the course is \"AI Saksham\" or \"EV Saksham\".\n   - Check if the following details are provided:\n       • User's email  \n       • User's phone number  \n       • Transferee's name  \n       • Transferee's email  \n       • Transferee's phone number  \n       • Transferee's Department\n       • Transferee's Graduattion year\n   - If any of these details are missing, ask the user to provide the missing ones in a formal well curated mail format.\n   - If all required details are present, output exactly: \"seat_transfer\"\n\n5. If the message is any other support-related query (not refund or seat transfer), output exactly: \"miscellaneous\"\n\n6. If the message is not related to support (e.g., personal message, spam, unrelated content), output exactly: \"irrelevant\"\n\nFollow these rules strictly. Do not generate any extra explanations or text outside of these defined responses."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -3376,
+        3264
+      ],
+      "id": "4f5c0445-9354-459a-847d-d27ded817609",
+      "name": "Classify query"
+    },
+    {
+      "parameters": {
+        "text": "=Message:\n\n{{ $('WhatsApp Trigger').first().json.messages[0].text.body }}",
+        "guardrails": {
+          "jailbreak": {
+            "value": {
+              "threshold": 0.7
+            }
+          },
+          "nsfw": {
+            "value": {
+              "threshold": 0.7
+            }
+          },
+          "topicalAlignment": {
+            "value": {
+              "threshold": 0.7,
+              "prompt": "=You are a content analysis system that determines if text stays on topic.\n\nBUSINESS SCOPE: The business scope is checking whether the mails received are support related queries for the edtech team. Examples include refund requests, seat transfer requests, account issues, billing questions, feature access problems, and other customer support inquiries related to a edtech firm products or services.\n\nDetermine if the text stays within the defined business scope. Flag any content\nthat strays from the allowed topics."
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.guardrails",
+      "typeVersion": 1,
+      "position": [
+        -3824,
+        3424
+      ],
+      "id": "dd901c08-61d8-4859-81bf-ebdcfdabb314",
+      "name": "Guardrails"
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct-0905",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3872,
+        3632
+      ],
+      "id": "dc2faf8c-80e8-4a7a-8ca0-50e9cc0f6ee6",
+      "name": "Guardrail model"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3440,
+        3504
+      ],
+      "id": "af561ce6-1fe3-444e-b40f-ff09ac1c5b60",
+      "name": "Classify model"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3296,
+        3504
+      ],
+      "id": "513eeeb2-aba3-4f10-afbd-353461dc603e",
+      "name": "Classify fallback model"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "^(refund|miscellaneous|seat_transfer|irrelevant)$",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notRegex"
+                    },
+                    "id": "632a9d21-032f-4874-bc8f-f960c9b8f06d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "other"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "69b6f364-553a-47f3-a2af-254dc4d0f9ea",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "refund",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=refund"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7f2008c8-017f-4f7b-9999-ef5bc5a7f65d",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "seat_transfer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "seat_transfer"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -3024,
+        3248
+      ],
+      "id": "e652e80f-631c-497d-97a8-25570be0d91c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1328002931,
+          "mode": "list",
+          "cachedResultName": "Chat History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=1328002931"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Body": "={{ $('WhatsApp Trigger').first().json.messages[0].text.body }}",
+            "AI Response": "={{ $('Classify query').first().json.output }}",
+            "Number": "={{ $('WhatsApp Trigger').first().json.contacts[0].wa_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Number",
+              "displayName": "Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Body",
+              "displayName": "Body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Response",
+              "displayName": "AI Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1456,
+        2816
+      ],
+      "id": "150794b9-503e-4ad1-9fe2-d95d1cc57543",
+      "name": "Add AI response to chat history"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2832,
+        3776
+      ],
+      "id": "21ab6638-c4f6-47c8-aac9-0f7e857a4dab",
+      "name": "Extraction model"
+    },
+    {
+      "parameters": {
+        "text": "=Chat History:\n\n{{ JSON.stringify($('Combine Chat History').item.json.data) }}\n\nBody:\n\n{{ $('WhatsApp Trigger').first().json.messages[0].text.body }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "student_email",
+              "description": "The email of the student who is initiating the seat transfer",
+              "required": true
+            },
+            {
+              "name": "student_phone_number",
+              "description": "The phone number of the student who is initiating the seat transfer",
+              "required": true
+            },
+            {
+              "name": "transferee_name",
+              "description": "The name of the student the seat is being transferred to.",
+              "required": true
+            },
+            {
+              "name": "transferee_email",
+              "description": "The email of the student the seat is being transferred to.",
+              "required": true
+            },
+            {
+              "name": "transferee_phone_number",
+              "description": "The phone number of the student the seat is being transferred to.",
+              "required": true
+            },
+            {
+              "name": "department",
+              "description": "The department to which the seat transferred to belongs",
+              "required": true
+            },
+            {
+              "name": "graduation_year",
+              "description": "The graduation year of the student the seat is being transferred to",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "=You are an expert extraction algorithm.\nOnly extract relevant information from the text.\nAll the information will be provided in the text. No attribute should be left blank."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        -2832,
+        3536
+      ],
+      "id": "671e2787-443d-4866-b117-e77dd32d190d",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 815687792,
+          "mode": "list",
+          "cachedResultName": "Student Pay",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=815687792"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Email",
+              "lookupValue": "={{ $json.output.student_email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2480,
+        3552
+      ],
+      "id": "124df0ce-6382-4782-acbf-22ba57e09df5",
+      "name": "Verify student details",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "={{ $('Verify student details').first().json.Email }}",
+        "subject": "[URGENT] Capabl Seat Transfer",
+        "message": "=Hi {{ $('Verify student details').first().json['Student Name'] }},\n\nOur records indicate that you have initiated a seat transfer to \n\nTransferee Name: {{ $('Information Extractor').item.json.output.transferee_name }}\nTransferee Email: {{ $('Information Extractor').item.json.output.transferee_email }}\nTransferee Phone Number: {{ $('Information Extractor').item.json.output.transferee_phone_number }}\n\nPlease confirm that you wish to proceed with this seat transfer. Also let the transferee know that they too will receive a confirmation mail for them to confirm the seat transfer.\n\nBest Regards,\nTeam Capabl",
+        "approvalOptions": {
+          "values": {
+            "approveLabel": "Confirm Seat Transfer"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 2,
+              "resumeUnit": "days"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1456,
+        3600
+      ],
+      "id": "e6f93996-dc16-4264-94a0-8badd70b740f",
+      "name": "Student seat transfer confirmation",
+      "webhookId": "8d731a76-9558-4bd9-b6fa-36cf46bce380"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2363fa90-0299-4808-830e-c58b67493411",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1248,
+        3600
+      ],
+      "id": "4bb56221-5a27-4d30-94ac-8566320f2e8e",
+      "name": "Student confirmation status"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "={{ $('Information Extractor').item.json.output.transferee_email }}",
+        "subject": "[URGENT] Capabl Seat Transfer",
+        "message": "=Hi {{ $('Information Extractor').first().json.output.transferee_name }},\n\nYou are receiving this mail because {{ $('Verify student details').first().json['Student Name'] }} has initiated a seat transfer for {{ $('Verify student details').first().json.Course }}.\n\nPlease verify your details and to proceed click on the confirmation button below.\n\nFull Name: {{ $('Information Extractor').first().json.output.transferee_name }}\nPhone Number: {{ $('Information Extractor').first().json.output.transferee_phone_number }}\nEmail: {{ $('Information Extractor').first().json.output.transferee_email }}\n\nBest Regards,\nTeam Capabl\n\n",
+        "approvalOptions": {
+          "values": {
+            "approveLabel": "Confirm Seat Transfer"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 2,
+              "resumeUnit": "days"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1040,
+        3504
+      ],
+      "id": "6c7bc963-4c91-4c48-894f-806cd8f72c76",
+      "name": "Transferee confirmation mail",
+      "webhookId": "f3edaa1b-26d9-4404-9890-e3cd83f22a7e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "69f159cd-3868-4e88-a7c4-04618faed154",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -832,
+        3504
+      ],
+      "id": "e294240a-0d30-4959-aab2-cc6564f40c55",
+      "name": "Transferee confirmation status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b8b71cde-d961-4474-a8b1-5a524ec5e773",
+              "name": "row_number",
+              "value": "={{ $('Verify student details').item.json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "196f8142-0a81-4e8f-a28f-e68223612c02",
+              "name": "Email",
+              "value": "={{ $('Information Extractor').item.json.output.transferee_email }}",
+              "type": "string"
+            },
+            {
+              "id": "4fc9d75e-8b32-45ed-b083-4d1fbfd1bab7",
+              "name": "Student Name",
+              "value": "={{ $('Information Extractor').item.json.output.transferee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "e039f4be-de0e-4c4e-9118-933b16bc117d",
+              "name": "Mobile",
+              "value": "={{ $('Information Extractor').item.json.output.transferee_phone_number }}",
+              "type": "string"
+            },
+            {
+              "id": "2b153cc0-d38b-4a7b-924b-6bb6ca527020",
+              "name": "Remarks",
+              "value": "=Transferred from {{ $('Verify student details').item.json.Email }}, {{ $('Verify student details').item.json.Mobile }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -624,
+        3408
+      ],
+      "id": "8e2a807a-7533-49ec-9c4c-92d7191dc714",
+      "name": "New student fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 815687792,
+          "mode": "list",
+          "cachedResultName": "Student Pay",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=815687792"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Program Id",
+              "displayName": "Program Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Mobile",
+              "displayName": "Mobile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "College Name",
+              "displayName": "College Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Course",
+              "displayName": "Course",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Course 2",
+              "displayName": "Course 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Graduation Year",
+              "displayName": "Graduation Year",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Project Druation",
+              "displayName": "Project Druation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MRP",
+              "displayName": "MRP",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount Received",
+              "displayName": "Amount Received",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bank_Name",
+              "displayName": "Bank_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Candidate status",
+              "displayName": "Candidate status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Capabl ID",
+              "displayName": "Capabl ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "POC",
+              "displayName": "POC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date of contact",
+              "displayName": "Date of contact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Remarks",
+              "displayName": "Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "FAQ",
+              "displayName": "FAQ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Follow up date",
+              "displayName": "Follow up date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dependency for payment",
+              "displayName": "Dependency for payment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Note",
+              "displayName": "Note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pay 1",
+              "displayName": "Pay 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pay 2",
+              "displayName": "Pay 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pay 3",
+              "displayName": "Pay 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pay 4",
+              "displayName": "Pay 4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pay 5",
+              "displayName": "Pay 5",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date 1",
+              "displayName": "Date 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date 2",
+              "displayName": "Date 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date 3",
+              "displayName": "Date 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date 4",
+              "displayName": "Date 4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date 5",
+              "displayName": "Date 5",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MoP 1",
+              "displayName": "MoP 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MoP 2",
+              "displayName": "MoP 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MoP 3",
+              "displayName": "MoP 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MoP 4",
+              "displayName": "MoP 4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "MoP 5",
+              "displayName": "MoP 5",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Stlmnt No. 1",
+              "displayName": "Stlmnt No. 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Stlmnt No. 2",
+              "displayName": "Stlmnt No. 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Stlmnt No. 3",
+              "displayName": "Stlmnt No. 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Stlmnt No. 4",
+              "displayName": "Stlmnt No. 4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Stlmnt No. 5",
+              "displayName": "Stlmnt No. 5",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Remarks",
+              "displayName": "Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        3408
+      ],
+      "id": "b3608d67-ca50-47f8-9f0a-6721c830ad26",
+      "name": "Update student in student pay"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1856898502,
+          "mode": "list",
+          "cachedResultName": "Payment Details-TechfusionX",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=1856898502"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Email",
+              "lookupValue": "={{ $('Verify student details').first().json.Email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -208,
+        3408
+      ],
+      "id": "17b9ecdd-e798-44cf-b4f0-650cb13568d4",
+      "name": "Get Payment Details"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        32,
+        3456
+      ],
+      "id": "e233d9a8-ec87-411c-a6ea-9f4a9796bff8",
+      "name": "Loop Over Payment Detail Rows"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        3504
+      ],
+      "id": "1245e7d8-50db-4497-b18a-256f9baa7d66",
+      "name": "Update Payment Details"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1de834f-b1f2-4725-a37e-a0ca2bd3ece7",
+              "name": "row_number",
+              "value": "={{ $json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "28b9eb75-8fc1-4418-8afa-d633d4f72820",
+              "name": "Email",
+              "value": "={{ $('Information Extractor').item.json.output.transferee_email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        3504
+      ],
+      "id": "bb09da15-6fe6-4d29-940b-432b7fda86ed",
+      "name": "Set New Student info"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/",
+          "mode": "url"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "College Name",
+              "lookupValue": "={{ $('Verify student details').item.json['College Name'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        864,
+        3296
+      ],
+      "id": "5e9a08dc-0c9a-4ff3-b011-01d2d2476abe",
+      "name": "Get WhatsApp group links"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Course 2'] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "c5965cf3-633e-46a1-b481-c30d5180e58f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "2 courses"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8b481d8a-77b3-42d7-a813-1319046be646",
+                    "leftValue": "={{ $json.Email }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Valid student"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8d2a3ba2-e6df-4a6a-b7bd-c13faa9cbc6a",
+                    "leftValue": "={{ $json.Email }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notExists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Invalid student"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -2176,
+        3680
+      ],
+      "id": "1f7f7b8b-4e41-4bd0-a8d8-315b853ef715",
+      "name": "Verify student and enrolled courses"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadheets/d/",
+          "mode": "url"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "College Name",
+              "lookupValue": "={{ $('Verify student details').item.json['College Name'] }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        3296
+      ],
+      "id": "e9b4fc3b-7173-4345-a3d1-9f9a5edbd1a6",
+      "name": "Get payment deadline",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "path": "9d51073b-50d8-43b9-8b63-c580131572d7",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3888,
+        4368
+      ],
+      "id": "a72c8def-6a6e-42aa-8099-2e771dfe2dc7",
+      "name": "Webhook",
+      "webhookId": "9d51073b-50d8-43b9-8b63-c580131572d7"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 815687792,
+          "mode": "list",
+          "cachedResultName": "Student Pay",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=815687792"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Email",
+              "lookupValue": "={{ $json.query.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3680,
+        4368
+      ],
+      "id": "422dfb8c-69b3-4c12-ab5d-162305faf9de",
+      "name": "Get college name"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 365552646,
+          "mode": "list",
+          "cachedResultName": "Refund Query",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=365552646"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Webhook').item.json.query.name }}",
+            "Email ID": "={{ $('Webhook').item.json.query.email }}",
+            "Phone Number": "={{ $json.Mobile }}",
+            "College Name": "={{ $json['College Name'] }}",
+            "Timestamp": "={{ $now.setZone('Asia/Kolkata').toFormat('dd-MM-yyyy') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email ID",
+              "displayName": "Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "College Name",
+              "displayName": "College Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -3472,
+        4368
+      ],
+      "id": "776486cd-3ef1-404a-b1be-ca309206251c",
+      "name": "New Refund Query"
+    },
+    {
+      "parameters": {
+        "text": "A new refund query has been added to the sheet",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3264,
+        4368
+      ],
+      "id": "454d6298-2ef9-43a8-9827-a7d85eee86ec",
+      "name": "Send a text message",
+      "webhookId": "93b18029-ee24-4ec0-9c23-b7b4b380cfce"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.query.email }}",
+        "subject": "Refund Request Query Created",
+        "emailType": "text",
+        "message": "=Hi {{ $('Webhook').item.json.query.name }},\n\nA new refund request query has been created for you. Our team will contact you shortly.\n\nBest Regards,\nTeam Capabl",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3056,
+        4368
+      ],
+      "id": "907d4561-227e-4b30-b53c-84066e130f44",
+      "name": "Send a ticket message",
+      "webhookId": "43beb307-a361-4ee8-8a63-e0fef060c5b0"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4544,
+        3424
+      ],
+      "id": "14cb703c-54bc-4132-bfe7-a86e520244dc",
+      "name": "WhatsApp Trigger",
+      "webhookId": "4334e7a8-5812-4449-92a1-9bca878b68dc"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "712656768602799",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').first().json.contacts[0].wa_id }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -2512,
+        3024
+      ],
+      "id": "9a27dae9-e7bd-4aef-92d9-ca162ef0f4a3",
+      "name": "Send other route message",
+      "webhookId": "a75812e7-d01b-4003-a4f5-be4b58197c2c"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "712656768602799",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').first().json.contacts[0].wa_id }}",
+        "textBody": "=There are limited seats allotted to each college & department, so seat cancellation is not applicable.\n\nHowever, in this case you can transfer your seat to another interested student from your college share details of both students.\n\nKindly provide below details: \n\nCourse Name:\nYour Email ID:\nYour Phone Number:\nTransferee’s full name:\nTransferee’s email address:\nTransferee’s phone number:\nTransferee’s Department:\nTransferee’s Graduation year:\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -2400,
+        3264
+      ],
+      "id": "225514c9-9814-4e99-8bd9-a7a70e59d86b",
+      "name": "Send Refund message",
+      "webhookId": "e7acaf23-2147-4432-9a14-285404d9d034"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "712656768602799",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').first().json.contacts[0].wa_id }}",
+        "textBody": "=The email id which you have provided does not match with our database. Please verify the email again and make sure that you provide the email ID used during the registration.\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        3920
+      ],
+      "id": "80304e0e-a476-4912-986e-9e65adf29ded",
+      "name": "Send account not found message",
+      "webhookId": "f3d75150-573b-4b48-9606-514b787ce7b1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "712656768602799",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').first().json.contacts[0].wa_id }}",
+        "textBody": "=A ticket has been created for seat transfer. A member of our support team will reach out to you shortly.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        3248
+      ],
+      "id": "0ca26746-3124-452d-9ba3-1115aa0678ea",
+      "name": "2 course message",
+      "webhookId": "349ce03d-0583-48d8-9541-30d7532bd38a"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "712656768602799",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').first().json.contacts[0].wa_id }}",
+        "textBody": "=We have sent you a confirmation for seat transfer on you email. Please ensure that the information provided in the mail is correct and click on the confirm button to proceed with seat transfer.\n\nAdditionally, the student whom the seat is being transferred to, will also receive a confirmation email once you confirm over the email.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -1744,
+        3600
+      ],
+      "id": "268fdcf0-6e95-4961-92c3-d8235f215d29",
+      "name": "Send process information",
+      "webhookId": "3d659e94-949c-44fe-9022-1ac35bb9780d"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Information Extractor').first().json.output.transferee_email }}",
+        "subject": "Welcome to Capabl",
+        "emailType": "text",
+        "message": "=Dear {{ $('Information Extractor').first().json.output.transferee_name }},\nCongratulations!!! Your seat is transferred.\n\nNext Steps:\n\nJoin WhatsApp Group (exclusively for your college for all important workshop updates)\n\n{{ $json['WhatsApp Group Link'] }}\n\nComplete the Remaining Fee Payment of Rs.{{ $('Verify student details').first().json.MRP - $('Verify student details').item.json['Amount Received'] }} before the deadlines date of {{ $('Get payment deadline').first().json['Last Date to Pay'] }}.\n\nPay here: https://rzp.io/rzp/X7MGU6w\n\n⚠️ Please note: We take Deadlines very seriously. Missing them may lead to seat cancellation.\n\nFor any queries, WhatsApp us at: +91 90356 58895\n\nLet’s meet at the workshop and become {{ $('Verify student details').item.json.Course }} together!\n\nWishing you a great future and happy learning!\n\nWith love,\nTeam Capabl.in",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1136,
+        3296
+      ],
+      "id": "d872c674-8178-4730-9ebd-0beb7d1d7be7",
+      "name": "Send a welcome message",
+      "webhookId": "678552d8-e3b6-4e47-9532-a145fff8b360"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "712656768602799",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').first().json.contacts[0].wa_id }}",
+        "textBody": "=Hi {{ $('Verify student details').first().json['Student Name'] }},\n\nYour seat has been transferred to {{ $('Information Extractor').first().json.output.transferee_name }}.\n\nSince we do not offer refunds, ensure that you recover the amount of {{ $('Verify student details').first().json['Amount Received'] }} from the transferee student.\n\nBest Regards,\nTeam Capabl",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        3312
+      ],
+      "id": "0718efdb-f4c3-4e12-86c8-4c41dbcadf35",
+      "name": "Seat transfer complete message",
+      "webhookId": "ccec815e-7453-4679-99ab-d355b6f23656"
+    },
+    {
+      "parameters": {
+        "text": "=Hi Admin,\n\nThe following student enrolled in 2 courses wants to transfer their seat:\n\nName: {{ $json['Student Name'] }}\nNumber: {{ $json.Mobile }}\nEmail: {{ $json.Email }}\n\nThe detailed information has been added to the sheet https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=sharing",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1744,
+        3376
+      ],
+      "id": "31e44a52-3eca-48e2-aace-92fd88abc461",
+      "name": "Admin notification for multi course students",
+      "webhookId": "98e777bf-7630-4600-b4e3-625a27506d39"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs",
+          "mode": "list",
+          "cachedResultName": "Support Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 658441222,
+          "mode": "list",
+          "cachedResultName": "Additional Queries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13qqI-oKNaAiWmenYhqKp-ZEApxS87En4sjBaw5lZcFs/edit#gid=658441222"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student Name": "={{ $('Verify student details').first().json['Student Name'] }}",
+            "Phone Number": "={{ $('Verify student details').first().json.Mobile }}",
+            "Email": "={{ $('Verify student details').first().json.Email }}",
+            "Timestamp": "={{ $Date.toLocaleDateString('en-GB') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1312,
+        3360
+      ],
+      "id": "44159e6b-47b5-4804-87ad-5d029320eadb",
+      "name": "Append row in sheet"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Fetch chat history": {
+      "main": [
+        [
+          {
+            "node": "Combine Chat History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Chat History": {
+      "main": [
+        [
+          {
+            "node": "Guardrails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify query": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails": {
+      "main": [
+        [
+          {
+            "node": "Classify query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrail model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Guardrails",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify query",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify fallback model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify query",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send other route message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Refund message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraction model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Verify student details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify student details": {
+      "main": [
+        [
+          {
+            "node": "Verify student and enrolled courses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Student seat transfer confirmation": {
+      "main": [
+        [
+          {
+            "node": "Student confirmation status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Student confirmation status": {
+      "main": [
+        [
+          {
+            "node": "Transferee confirmation mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transferee confirmation mail": {
+      "main": [
+        [
+          {
+            "node": "Transferee confirmation status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transferee confirmation status": {
+      "main": [
+        [
+          {
+            "node": "New student fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New student fields": {
+      "main": [
+        [
+          {
+            "node": "Update student in student pay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update student in student pay": {
+      "main": [
+        [
+          {
+            "node": "Get Payment Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Payment Details": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Payment Detail Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Payment Detail Rows": {
+      "main": [
+        [
+          {
+            "node": "Seat transfer complete message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set New Student info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Payment Details": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Payment Detail Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set New Student info": {
+      "main": [
+        [
+          {
+            "node": "Update Payment Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get WhatsApp group links": {
+      "main": [
+        [
+          {
+            "node": "Send a welcome message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify student and enrolled courses": {
+      "main": [
+        [
+          {
+            "node": "Admin notification for multi course students",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send process information",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send account not found message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get payment deadline": {
+      "main": [
+        [
+          {
+            "node": "Get WhatsApp group links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get college name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get college name": {
+      "main": [
+        [
+          {
+            "node": "New Refund Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Refund Query": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Send a ticket message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch chat history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send other route message": {
+      "main": [
+        [
+          {
+            "node": "Add AI response to chat history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Refund message": {
+      "main": [
+        [
+          {
+            "node": "Add AI response to chat history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send account not found message": {
+      "main": [
+        [
+          {
+            "node": "Add AI response to chat history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 course message": {
+      "main": [
+        [
+          {
+            "node": "Add AI response to chat history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send process information": {
+      "main": [
+        [
+          {
+            "node": "Student seat transfer confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Seat transfer complete message": {
+      "main": [
+        [
+          {
+            "node": "Get payment deadline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin notification for multi course students": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "2 course message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "be2f5b34-c73d-4957-b776-c1dd99a4472b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f0570b06cae72efa32c49579d117142d39cfac918b41649226c93d80b6607409"
+  },
+  "id": "t05GB5w2UOGWLpEV",
+  "tags": []
+}

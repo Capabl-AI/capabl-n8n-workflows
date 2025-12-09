@@ -1,0 +1,974 @@
+{
+  "name": "linkedin-blog-automation",
+  "nodes": [
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "from bs4 import BeautifulSoup\n\nhtml_content = _('Get HTML content from blog page').first().json.data\n\nsoup = BeautifulSoup(html_content, 'html.parser')\n\nblog_list = []\ntitle_list = []\n\nfor data in _input.all():\n  title_list.append(data.json.Title)\n\nfor a in soup.find_all('a', class_='link-block-12'):\n    link = a.get('href')\n    h1 = a.find('h1')\n    if link and h1:\n        name = h1.get_text(strip=True)\n        if name not in title_list:\n          blog_list.append({'name': name, 'link': link})\n\nreturn blog_list"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1936,
+        784
+      ],
+      "id": "f63be21c-1a53-42e4-ad87-a45264c7c1c1",
+      "name": "Get blog list",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Blog Title: {{ $json.Title }}\n\nBlog Content: {{ $json['blog content'] }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are an expert LinkedIn post creator for tech audiences. Craft an engaging LinkedIn post that feels distinctly human: conversational, lively, and authentic.\n\nYour post must:\n\nBe structured into 3–4 distinct paragraphs, each a minimum of 3 lines. Use line breaks for clarity and to improve readability on mobile.\n\nVary sentence length, avoiding uniform, repetitive structure. Some sentences can be short and impactful; others may be longer and more nuanced.\n\nDo not use hyphens or dashes.\n\nIntegrate emojis naturally throughout the post to bring out emotion, emphasize points, or illustrate ideas. Use 3–6 emojis total, spaced across the content—not just at the end.\n\nBegin with a catchy, thought-provoking hook.\n\nSummarize the blog’s core idea with clarity and context.\n\nHighlight one compelling benefit, real-world application, or unique insight.\n\nEnd with a strong, friendly call to action that invites discussion (like sharing, commenting, or personal stories).\n\nUse 2–4 relevant, specific hashtags at the very end—but none embedded inside the paragraphs.\n\nEnsure every fact and claim is grounded in the provided summary. Do NOT speculate or exaggerate.\n\nEnsure that no paragraph is more than 2 lines.\n\nTone:\nConversational, relatable, and confident—write as if inspiring a community of peers, not as a corporate press release.\n\nOutput:\nA single LinkedIn post meeting the above requirements. Use clear paragraphs and emoji for visual engagement. Vary sentence length to keep the narrative lively. Output only the post text."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        3008,
+        912
+      ],
+      "id": "3882f553-6ac1-45ef-8155-2cc95637821e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        1152
+      ],
+      "id": "720b9b03-99db-49ed-861c-c04ab8d8a274",
+      "name": "Groq Chat Model"
+    },
+    {
+      "parameters": {
+        "url": "=https://capabl.in{{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2128,
+        784
+      ],
+      "id": "e37289b1-5eee-4d38-a17e-d9e5b9167898",
+      "name": "Request blog content"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "blog content",
+              "cssSelector": ".rich-text-block-31"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        2336,
+        784
+      ],
+      "id": "34a239f3-fe06-4276-b9ae-428360132467",
+      "name": "Extract the exact blog content"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        1152
+      ],
+      "id": "43e85d54-5eb6-4042-918e-c7d49f3b1313",
+      "name": "Fallback model"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "=Hi admin,\n\nI have prepared another linkedin post. This time on title \n\n\"{{ $('Get blog list').item.json.name }}\"\n\nCheck out the post and let me know if you approve:\n\n{{ $('AI Agent').item.json.output }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3344,
+        912
+      ],
+      "id": "f3cf223d-f8ca-44ec-90f7-0d1a4e1f17a8",
+      "name": "Approval for each post",
+      "webhookId": "582629c3-6e98-4c85-92e0-078d510bcc10"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "260f705c-555d-42f3-a703-b9d017537419",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3536,
+        912
+      ],
+      "id": "7a792048-6261-47a7-8e65-8680a0df18ae",
+      "name": "Is post approved?"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Get blog list').item.json.name }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1ez5b9E2T5schjlu2ovoG-2NoQI5SsKbl",
+          "mode": "list",
+          "cachedResultName": "Capabl Media Folder",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1ez5b9E2T5schjlu2ovoG-2NoQI5SsKbl"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3760,
+        896
+      ],
+      "id": "b08fd9f8-b78f-4d65-a253-051806ff53bb",
+      "name": "Create folder"
+    },
+    {
+      "parameters": {
+        "text": "=Hi Admin,\n\nThe Linkedin Post is ready. \n\nPlease add a media to the following drive link before the post upload time:\n\n{{ $json.Media_Link }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4160,
+        896
+      ],
+      "id": "69c12ed7-d7fc-4c95-b69a-c557bf8214ab",
+      "name": "Media folder created",
+      "webhookId": "17e5345a-7699-4cbb-82fb-633662abc531"
+    },
+    {
+      "parameters": {
+        "url": "https://www.capabl.in/blog",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1504,
+        784
+      ],
+      "id": "1b2e0d91-daae-4a3e-8579-82327aaae2ce",
+      "name": "Get HTML content from blog page",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g",
+          "mode": "list",
+          "cachedResultName": "Linkedin Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Generated Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title": "={{ $('Loop Over blogs').item.json.Title }}",
+            "Link": "=https://capabl.in/{{ $('Loop Over blogs').item.json.Link }}",
+            "Post_Content": "={{ $('AI Agent').item.json.output }}",
+            "Media_Available": "No",
+            "Published_Status": "No",
+            "Media_Link": "=https://drive.google.com/drive/u/1/folders/{{ $json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post_Content",
+              "displayName": "Post_Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Media_Link",
+              "displayName": "Media_Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Media_Available",
+              "displayName": "Media_Available",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post_Link",
+              "displayName": "Post_Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Published_Status",
+              "displayName": "Published_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3984,
+        896
+      ],
+      "id": "91bfdb71-c34d-417f-aa17-b91e65ebecca",
+      "name": "Add linkedin post to the sheet"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g",
+          "mode": "list",
+          "cachedResultName": "Linkedin Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Generated Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1712,
+        784
+      ],
+      "id": "7bb7cf82-8301-402c-8f00-e2876664b657",
+      "name": "Get post list"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1264,
+        1552
+      ],
+      "id": "fc41874d-0fae-4f39-bca9-c456d6c492fb",
+      "name": "Watch for media update"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g",
+          "mode": "list",
+          "cachedResultName": "Linkedin Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Generated Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1472,
+        1552
+      ],
+      "id": "0bbc701d-b37d-4089-87dd-573e975b3a42",
+      "name": "Get all posts"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d1aec29e-d6f7-4acf-8c00-00b0e2e97583",
+              "leftValue": "={{ $json.Post_Content }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        1552
+      ],
+      "id": "b20836db-d9ae-4312-9d6f-9128f045194b",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2736,
+        784
+      ],
+      "id": "4cfa0f91-2d7b-426f-a75e-54e8e7e86ef3",
+      "name": "Loop Over blogs"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1888,
+        1552
+      ],
+      "id": "97315018-1c83-4772-82af-eb5a78e954f7",
+      "name": "Loop Over Posts"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $json.Media_Link }}",
+            "mode": "url"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2096,
+        1648
+      ],
+      "id": "e8e0b348-0fd5-4715-bb32-b5d40c819bb2",
+      "name": "Search files and folders",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5d22f5a3-ccee-4526-a82a-31ee11805273",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2304,
+        1648
+      ],
+      "id": "170aca7a-8ede-414a-9712-db5250c649f8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1TYIfAQVtWx31MBVVu_KS4PYyD7innGvz6VPXMRYHGhg",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Post",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TYIfAQVtWx31MBVVu_KS4PYyD7innGvz6VPXMRYHGhg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Generated_Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TYIfAQVtWx31MBVVu_KS4PYyD7innGvz6VPXMRYHGhg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title": "={{ $('Get all posts').item.json.Title }}",
+            "Link": "={{ $('Get all posts').item.json.Link }}",
+            "Post_Content": "={{ $('Get all posts').item.json.Post_Content }}",
+            "Media_Link": "=https://drive.google.com/uc?export=download&id={{ $json.id }}",
+            "Media_Available": "Yes",
+            "Published_Status": "={{ $('Get all posts').item.json.Published_Status }}"
+          },
+          "matchingColumns": [
+            "Title"
+          ],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post_Content",
+              "displayName": "Post_Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Media_Link",
+              "displayName": "Media_Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Media_Available",
+              "displayName": "Media_Available",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post_Link",
+              "displayName": "Post_Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Published_Status",
+              "displayName": "Published_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2608,
+        1632
+      ],
+      "id": "7d3c1faa-f5df-4737-9530-bb5bc99ba6a6",
+      "name": "Update Media Column"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            },
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1216,
+        784
+      ],
+      "id": "272b255d-9fa0-4183-b5fe-2091ed926665",
+      "name": "Watch for blog update"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c6eaa2a5-af29-4188-b90d-0f2e7cd0c11a",
+              "name": "Title",
+              "value": "={{ $('Get blog list').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "be0a60ef-a2f0-40cd-9976-855cc2a19131",
+              "name": "Link",
+              "value": "={{ $('Get blog list').item.json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "40c5d523-28f6-4995-a01e-4ef391f76477",
+              "name": "blog content",
+              "value": "={{ $json['blog content'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2544,
+        784
+      ],
+      "id": "7ea11170-17fe-418f-9e0d-d9c50d9a2123",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get blog list": {
+      "main": [
+        [
+          {
+            "node": "Request blog content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Approval for each post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request blog content": {
+      "main": [
+        [
+          {
+            "node": "Extract the exact blog content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract the exact blog content": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Approval for each post": {
+      "main": [
+        [
+          {
+            "node": "Is post approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is post approved?": {
+      "main": [
+        [
+          {
+            "node": "Create folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create folder": {
+      "main": [
+        [
+          {
+            "node": "Add linkedin post to the sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Media folder created": {
+      "main": [
+        [
+          {
+            "node": "Loop Over blogs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get HTML content from blog page": {
+      "main": [
+        [
+          {
+            "node": "Get post list",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add linkedin post to the sheet": {
+      "main": [
+        [
+          {
+            "node": "Media folder created",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get post list": {
+      "main": [
+        [
+          {
+            "node": "Get blog list",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watch for media update": {
+      "main": [
+        [
+          {
+            "node": "Get all posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all posts": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over blogs": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Posts": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update Media Column",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Media Column": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watch for blog update": {
+      "main": [
+        [
+          {
+            "node": "Get HTML content from blog page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over blogs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0830d9d1-896b-4674-b204-e2d050ed9562",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f0570b06cae72efa32c49579d117142d39cfac918b41649226c93d80b6607409"
+  },
+  "id": "t05GB5w2UOGWLpEV",
+  "tags": []
+}

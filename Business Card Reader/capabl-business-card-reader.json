@@ -1,0 +1,330 @@
+{
+  "name": "capabl-business-card-reader",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -624,
+        160
+      ],
+      "id": "17541784-387f-4295-af02-76e48fbe8930",
+      "name": "Telegram Trigger",
+      "webhookId": "d84dc414-01a2-4137-9e7d-ce62ee30cdb8"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-lite"
+        },
+        "text": "=You are a data extraction expert. Extract all details from the given business card strictly in the following JSON format:\n\n{\n\"Name\": \"<Full Name from the card>\",\n\"Phone Number\": \"<Primary phone number without any symbols>\",\n\"Secondary phone number\": \"<Secondary phone numbers separated by commas without symbols>\",\n\"Email ID\": \"<Primary email address>\",\n\"Secondary Email ID\": \"<Alternate email address if available, else empty string>\",\n\"Primary_Address\": \"<Full postal address mentioned first on the card>\",\n\"Primary_City\": <City name from the first address mentioned>,\n\"Primary_State\": <State name from the first address mentioned>,\n\"Primary_Pincode\": <Pincode name from the first address mentioned>,\n\"Secondary_Address\": \"<Full postal address mentioned second on the card, if mentioned>\",\n\"Secondary_City\": <City name from the second address mentioned>,\n\"Secondary_State\": <State name from the second address mentioned>,\n\"Secondary_Pincode\": <Pincode from the second address mentioned>,\n\"Company Name\": \"<Company name as mentioned>\",\n\"Brand/Product Name\": \"<Brands or product names listed, separated by commas>\"\n}\n\nGuidelines:\n\n1. Include all fields exactly as shown.\n\n2. If any information is missing on the card, return an empty string (\"\") for that field.\n\n3. Remove all symbols (+, -, spaces, etc.) from phone numbers; only digits remain.\n\n4. Separate multiple secondary phone numbers with commas, with no spaces.\n\n5. Separate multiple brands or product names with commas.\n\n6. Output only the JSON object. DO NOT INCLUDE ANY MARKDOWN formatting or any triple backtick (```). ONLY INLCUDE THE JSON.\n\n7. The output must start directly with { and end with }.\n\n8. Extract data precisely from the card image or provided text.\n\n9. If phone numbers do not have a country code, assume the default country code \"91\" and prepend it to mobile numbers (not to landline or fax numbers).\n\n10. Ensure the JSON formatting matches the example exactly with no extra spaces or indentation outside field values.\n\nCorrect output example:\n{\n\"Name\": \"Sandra Tucker\",\n\"Phone Number\": \"91123467890\",\n\"Secondary phone number\": \"917463820496,914839183758\",\n\"Email ID\": \"sandra@email.com\",\n\"Secondary Email ID\": \"\",\n\"Primary_Address\": \"123 Rd, Near Carlborg Bldg, Colaba, Mumbai, MH, India-400001\",\n\"Primary_City\": \"Mumbai\",\n\"Primary_State\": \"MH\",\n\"Primary_Pincode\": \"400001\",\n\"Secondary_Address\": \"3rd Floor, A - Wing, Agarwal Trade Center, Office No. 37/38, Sector 11, CBD Belapur, Navi Mumbai, Maharashtra 400614\",\n\"Secondary_City\": \"Navi Mumbai\",\n\"Secondary_State\": \"Maharashtra\",\n\"Secondary_Pincode\": \"400614\",\n\"Company Name\": \"Tucker Pvt Ltd\",\n\"Brand/Product Name\": \"\"\n}",
+        "inputType": "binary",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        160
+      ],
+      "id": "c6d35f3f-5990-4d6f-a1fc-6805000203f1",
+      "name": "Analyze Business Cards",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6315e201-1731-4f81-9c69-a567614c3784",
+              "leftValue": "={{ $json.candidates[0].content.parts[0].text }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        160
+      ],
+      "id": "ae87e54d-cc88-4a53-8943-bac4fe1a6255",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw text from the AI response\nlet rawText = $input.first().json.candidates[0].content.parts[0].text;\n\n// Clean backticks and markdown formatting, extract JSON content\nlet cleanText = rawText.replace(/``````$/g, '').trim();\n\n// Find the first '{' and last '}' to handle partial/incomplete JSON\nlet startIndex = cleanText.indexOf('{');\nlet endIndex = cleanText.lastIndexOf('}');\nlet jsonString = '';\nif (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {\n  jsonString = cleanText.substring(startIndex, endIndex + 1);\n} else {\n  jsonString = cleanText;\n}\n\n// Parse the cleaned JSON\nlet result = JSON.parse(jsonString);\n\nreturn [{ json: { result: result } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4025d267-aa55-4415-8f61-c800216beefe",
+      "name": "String to JSON"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fe9f0e99-26ab-45ec-8edc-b78ff0917784",
+              "name": "Name",
+              "value": "={{ $json.result.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "b632f7b9-b6bc-4e9b-8d29-15e87ba99da0",
+              "name": "Primary Phone Number",
+              "value": "={{ $json.result['Phone Number'] }}",
+              "type": "string"
+            },
+            {
+              "id": "842b728d-ada6-4bff-8133-a521271644d9",
+              "name": "Secondary Phone Number",
+              "value": "={{ $json.result['Secondary phone number'] }}",
+              "type": "string"
+            },
+            {
+              "id": "140dbabc-5eba-4afb-a7a4-94076159acdb",
+              "name": "Primary Email ID",
+              "value": "={{ $json.result['Email ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "ad3edf51-0a34-4dcd-a0f6-876199fd9178",
+              "name": "Secondary Email ID",
+              "value": "={{ $json.result['Secondary Email ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "0e233eb1-5861-4402-8509-53ccbdd92206",
+              "name": "Primary Address",
+              "value": "={{ $json.result.Primary_Address }}",
+              "type": "string"
+            },
+            {
+              "id": "3dc83155-803e-4718-aaaf-521149040a48",
+              "name": "Primary City",
+              "value": "={{ $json.result.Primary_City }}",
+              "type": "string"
+            },
+            {
+              "id": "d6183a9f-539f-42ee-b616-978d60b3cb20",
+              "name": "Primary State",
+              "value": "={{ $json.result.Primary_State }}",
+              "type": "string"
+            },
+            {
+              "id": "925ee16a-557e-45a4-9026-a84e41bfe8e9",
+              "name": "Primary Pincode",
+              "value": "={{ $json.result.Primary_Pincode }}",
+              "type": "string"
+            },
+            {
+              "id": "d97417c0-0586-4b92-8f78-bc0cc4574a7d",
+              "name": "Secondary Address",
+              "value": "={{ $json.result.Secondary_Address }}",
+              "type": "string"
+            },
+            {
+              "id": "d282a631-c5f7-44d0-8bd5-db3679919cd4",
+              "name": "Secondary City",
+              "value": "={{ $json.result.Secondary_City }}",
+              "type": "string"
+            },
+            {
+              "id": "f49b1453-46af-45dc-bc21-0c2d19da2520",
+              "name": "Secondary State",
+              "value": "={{ $json.result.Secondary_State }}",
+              "type": "string"
+            },
+            {
+              "id": "91036638-ba1e-4980-a807-c89cd7207f2f",
+              "name": "Secondary Pincode",
+              "value": "={{ $json.result.Secondary_Pincode }}",
+              "type": "string"
+            },
+            {
+              "id": "616a501b-a042-48ca-8ca7-771829afa8d6",
+              "name": "Company Name",
+              "value": "={{ $json.result['Company Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "c53421c7-a840-4014-8850-4ffad1dd357a",
+              "name": "Brand/Product Name",
+              "value": "={{ $json.result['Brand/Product Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "f3ec55fa-3b07-4792-8ecb-926729e9f30e",
+              "name": "Added by",
+              "value": "={{ $('Telegram Trigger').first().json.message.chat.first_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "20060e2e-d4d9-4650-b792-5cd34a7c7569",
+      "name": "Edit Fields",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "052f40fe-0028-491c-82dd-e806ab64bddf",
+      "name": "Add card details to sheet"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "=Following Information has been added to your database:\n\nName: {{ $json.Name }}\n\nPrimary Phone Number: {{ $json['Primary Phone Number'] }}\n\nSecondary Phone Number: {{ $json['Secondary Phone Number'] }}\n\nPrimary Email ID: {{ $json['Primary Email ID'] }}\n\nSecondary Email ID: {{ $json['Secondary Email ID'] }}\n\nAddress: {{ $json['Secondary Address'] }}\n\nSeondary Address: {{ $json['Secondary Address'] }}\n\nCompany Name: {{ $json['Company Name'] }}\n\nBrand/Product Name: {{ $json['Brand/Product Name'] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "c297f5e1-a043-4b9c-8bdc-63c9d633dfb1",
+      "name": "Send a confirmation",
+      "webhookId": "0f73a41a-763c-4132-911c-c3c0fafed0b9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Analyze Business Cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Business Cards": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "String to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "String to JSON": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Add card details to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add card details to sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e2748ff3-19b3-44d6-a07a-0163cf4e5060",
+  "meta": {
+    "instanceId": "f0570b06cae72efa32c49579d117142d39cfac918b41649226c93d80b6607409"
+  },
+  "id": "t05GB5w2UOGWLpEV",
+  "tags": []
+}

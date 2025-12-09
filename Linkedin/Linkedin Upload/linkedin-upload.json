@@ -1,0 +1,318 @@
+{
+  "name": "linkedin-upload",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g",
+          "mode": "list",
+          "cachedResultName": "Linkedin Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Generated Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Media_Available",
+              "lookupValue": "Yes"
+            },
+            {
+              "lookupColumn": "Published_Status",
+              "lookupValue": "Not Published"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2688,
+        1216
+      ],
+      "id": "418d42e5-ff0b-4a2b-b9e4-29b073526f75",
+      "name": "Get ready to publish posts"
+    },
+    {
+      "parameters": {
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        1216
+      ],
+      "id": "46f43c49-dcf3-4464-9710-95231772f07b",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g",
+          "mode": "list",
+          "cachedResultName": "Linkedin Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Generated Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16sTESuPHgxQBDsNRrz6LzLzPkwPytVsKuMMhRCvDM3g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post_Content",
+              "displayName": "Post_Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Media_Link",
+              "displayName": "Media_Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Media_Available",
+              "displayName": "Media_Available",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post_Link",
+              "displayName": "Post_Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Published_Status",
+              "displayName": "Published_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3568,
+        1216
+      ],
+      "id": "b56aab0f-736a-4a8c-99b5-8bef5257c7f4",
+      "name": "Update publish status"
+    },
+    {
+      "parameters": {
+        "operation": "uploadVideo",
+        "user": "__manual_user__",
+        "platform": [
+          "linkedin"
+        ],
+        "title": "={{ $json.Title }}",
+        "linkedinTitle": "={{ $json.Title }}",
+        "description": "={{ $json.Post_Content }}",
+        "linkedinDescription": "={{ $json.Post_Content }}",
+        "video": "={{ $json.Media_Link }}",
+        "targetLinkedinPageId": "__manual_linkedin__"
+      },
+      "type": "n8n-nodes-upload-post.uploadPost",
+      "typeVersion": 1,
+      "position": [
+        3136,
+        1216
+      ],
+      "id": "158e24a1-909d-4aa4-8cf9-506df7099373",
+      "name": "Upload a video"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac509854-87ec-40a2-99d7-18e4ae4b3151",
+              "name": "Published_Status",
+              "value": "Published",
+              "type": "string"
+            },
+            {
+              "id": "53215d7b-c3cf-4e1a-a571-89f091b3b173",
+              "name": "Post_Link",
+              "value": "={{ $json.results[0].post_url }}",
+              "type": "string"
+            },
+            {
+              "id": "86ed00a1-7fc7-496c-b00f-706212243e84",
+              "name": "row_number",
+              "value": "={{ $('Limit').first().json.row_number }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3344,
+        1216
+      ],
+      "id": "b5e7623e-3fc6-4b4b-914a-a7d60c5928f1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 3,
+              "triggerAtHour": 17,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        2480,
+        1216
+      ],
+      "id": "96f8780b-4f00-40a1-86be-bbbbdba63c18",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get ready to publish posts": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Update publish status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get ready to publish posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "92f4de7f-db86-4a5e-92b1-e6b2021e8943",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f0570b06cae72efa32c49579d117142d39cfac918b41649226c93d80b6607409"
+  },
+  "id": "t05GB5w2UOGWLpEV",
+  "tags": []
+}
