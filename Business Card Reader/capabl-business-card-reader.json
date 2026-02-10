@@ -16,9 +16,15 @@
         -624,
         160
       ],
-      "id": "17541784-387f-4295-af02-76e48fbe8930",
+      "id": "33f89a09-2477-45ab-aa5b-c4aed3bf9e2a",
       "name": "Telegram Trigger",
-      "webhookId": "d84dc414-01a2-4137-9e7d-ce62ee30cdb8"
+      "webhookId": "d84dc414-01a2-4137-9e7d-ce62ee30cdb8",
+      "credentials": {
+        "telegramApi": {
+          "id": "TxPSOXxaBrhKezBD",
+          "name": "BusinessCard Bot"
+        }
+      }
     },
     {
       "parameters": {
@@ -41,9 +47,15 @@
         -448,
         160
       ],
-      "id": "c6d35f3f-5990-4d6f-a1fc-6805000203f1",
+      "id": "2a967fbc-d47b-4cd8-a6ab-ab82da6ea096",
       "name": "Analyze Business Cards",
-      "retryOnFail": true
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pHF9tjZvEEYNpPOx",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
     },
     {
       "parameters": {
@@ -75,7 +87,7 @@
         -240,
         160
       ],
-      "id": "ae87e54d-cc88-4a53-8943-bac4fe1a6255",
+      "id": "49766b6a-7136-402f-ab52-f50beecb1930",
       "name": "If"
     },
     {
@@ -88,7 +100,7 @@
         0,
         0
       ],
-      "id": "4025d267-aa55-4415-8f61-c800216beefe",
+      "id": "70c30a5f-3edc-4147-a194-f9bd45c3751c",
       "name": "String to JSON"
     },
     {
@@ -201,7 +213,7 @@
         208,
         0
       ],
-      "id": "20060e2e-d4d9-4650-b792-5cd34a7c7569",
+      "id": "cef483f1-1df9-4c39-a90e-8c40e6bfb565",
       "name": "Edit Fields",
       "alwaysOutputData": true,
       "executeOnce": true
@@ -211,16 +223,109 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "",
-          "mode": "url"
+          "value": "13oROiJPQcJjkSshSuesO1a4eaHReKUVKaNCuKMXTXOE",
+          "mode": "list",
+          "cachedResultName": "Business Card Reader",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13oROiJPQcJjkSshSuesO1a4eaHReKUVKaNCuKMXTXOE/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": "",
+          "value": "gid=0",
           "mode": "list",
-          "cachedResultName": "",
-          "cachedResultUrl": ""
-        }
+          "cachedResultName": "PoI Details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13oROiJPQcJjkSshSuesO1a4eaHReKUVKaNCuKMXTXOE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary Phone Number",
+              "displayName": "Primary Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Secondary Phone Number",
+              "displayName": "Secondary Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary Email ID",
+              "displayName": "Primary Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Secondary Email ID",
+              "displayName": "Secondary Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Brand/Product Name",
+              "displayName": "Brand/Product Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Owner",
+              "displayName": "Owner",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
@@ -228,8 +333,14 @@
         416,
         0
       ],
-      "id": "052f40fe-0028-491c-82dd-e806ab64bddf",
-      "name": "Add card details to sheet"
+      "id": "22cca991-72b4-433e-8188-c0ed0b147d05",
+      "name": "Add card details to sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ki0w3ZRG3sLv5ush",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -243,9 +354,39 @@
         624,
         0
       ],
-      "id": "c297f5e1-a043-4b9c-8bdc-63c9d633dfb1",
+      "id": "590a72b4-68f2-480c-82ab-e24e75813c19",
       "name": "Send a confirmation",
-      "webhookId": "0f73a41a-763c-4132-911c-c3c0fafed0b9"
+      "webhookId": "0f73a41a-763c-4132-911c-c3c0fafed0b9",
+      "credentials": {
+        "telegramApi": {
+          "id": "TxPSOXxaBrhKezBD",
+          "name": "BusinessCard Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Add card details to sheet').item.json['Primary Email ID'] }}",
+        "subject": "Thank you for your Visit!",
+        "emailType": "text",
+        "message": "=Hi {{ $('Add card details to sheet').item.json.Name }},\n\nThank you for visiting our booth. We hope you had lovely time during your visit.\n\nBest Regards,\nTeam Capabl",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "c690cdf9-0ecd-4783-b1f1-d6794661e4af",
+      "name": "Send a message",
+      "webhookId": "d7e45e71-8330-45af-afea-6f0ba49a6127",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Jylh5Q0CZk5yPG8K",
+          "name": "Gmail account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -315,16 +456,30 @@
           }
         ]
       ]
+    },
+    "Send a confirmation": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "e2748ff3-19b3-44d6-a07a-0163cf4e5060",
+  "versionId": "137b7556-ab22-485b-8e86-34622d7e02be",
   "meta": {
-    "instanceId": "f0570b06cae72efa32c49579d117142d39cfac918b41649226c93d80b6607409"
+    "templateCredsSetupCompleted": true,
+    "instanceId": "72e24b2287cf24a163ab9577e537989718571808576c237a391aa65496247d51"
   },
-  "id": "t05GB5w2UOGWLpEV",
+  "id": "8VQtSXeC2VQ7_HrWWWYaQ",
   "tags": []
 }
