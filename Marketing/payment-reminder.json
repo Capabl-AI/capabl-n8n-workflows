@@ -1,0 +1,1634 @@
+{
+  "name": "marketing-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18,
+              "triggerAtMinute": {}
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        -32
+      ],
+      "id": "b07802b3-947b-4099-bb36-4081e03fb01d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI",
+          "mode": "list",
+          "cachedResultName": "New_Capabl Payment Details- Student (Responses)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1191549787,
+          "mode": "list",
+          "cachedResultName": "WhatsApp Group",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI/edit#gid=1191549787"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        -32
+      ],
+      "id": "57d21521-6b69-437c-a7d2-488a1e3c2ecf",
+      "name": "Get College Payment Deadlines",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ki0w3ZRG3sLv5ush",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "108d9aae-cee1-4ea4-bad4-bd20643d8ae8",
+              "leftValue": "={{ $json['AI Deadline'] }}",
+              "rightValue": "={{ Date.now() }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        -32
+      ],
+      "id": "0cf04278-a5cd-442a-b080-41e7c7d5e1c4",
+      "name": "Get colleges with deadlines"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "22c7d669-6c14-4f6d-a266-14a3f89a05bc",
+              "leftValue": "={{ $json['Difference'] }}",
+              "rightValue": 172800000,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            },
+            {
+              "id": "0817fb59-85c9-4e23-86a6-a762bbb2c1b1",
+              "leftValue": "={{ $json['Difference'] }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        -128
+      ],
+      "id": "92c18ca9-6f1e-4c17-abc8-6037faa99d90",
+      "name": "Get  colleges to remind"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU",
+          "mode": "list",
+          "cachedResultName": "2025 Financial Plans",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 911736951,
+          "mode": "list",
+          "cachedResultName": "Student Pay",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU/edit#gid=911736951"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "College Name",
+              "lookupValue": "={{ $json['College Name'] }}"
+            },
+            {
+              "lookupColumn": "Course",
+              "lookupValue": "Agentic AI Saksham"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        -224
+      ],
+      "id": "c078c891-4c82-4816-aa2e-546c4c0032f8",
+      "name": "Get all students",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ki0w3ZRG3sLv5ush",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "99d35009-9e8f-4cca-9416-8960419ae9ae",
+              "leftValue": "={{ $json['Amount Received'] }}",
+              "rightValue": 500,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        -224
+      ],
+      "id": "8b79514a-e995-45cd-a941-1b61a1ab4974",
+      "name": "Unpaid Students"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email Address'] }}",
+        "subject": "Second Deadline Due",
+        "emailType": "text",
+        "message": "=Dear {{ $json['Your Name'] }},\n\nYou are receiving this mail as a reminder of your fee payment for {{ $json['Program Register for with Capabl '] }} Course.\n\nPlease ensure that you pay the remaining amount of Rs. {{ $('Loop Over Items').item.json['Remaining Amount'] }} before {{ $('Loop Over Items').item.json['AI Deadline'] }} to maintain your seat in the program.\n\nKindly pay here - https://rzp.io/rzp/X7MGU6w\n\nKindly ignore this mail, if already paid in full.\n\nBest Reagrds,\nTeam Capabl",
+        "options": {
+          "senderName": "Capabl Support"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        -224
+      ],
+      "id": "b2d4f753-4cbc-42dc-9d23-ef7605daba67",
+      "name": "Send a message",
+      "webhookId": "23515401-a181-42e4-946a-3176fb648d1f",
+      "alwaysOutputData": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Jylh5Q0CZk5yPG8K",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\nconst date  = $json['AI Deadline'];\nconst deadline = new Date(date).getTime();\nconst now = Date.now()\n\nconst difference = Math.abs(deadline - now)\n\n$json['Difference'] = difference\nreturn $json;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -128
+      ],
+      "id": "03f2f995-98d0-4b46-a144-0897852a722b",
+      "name": "Get current and deadline difference"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f60bfabb-582d-4189-9db1-58d0562da90b",
+              "name": "College Name",
+              "value": "={{ $('Get  colleges to remind').item.json['College Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "997618c7-306e-40a8-8ca6-716adbf9f5c4",
+              "name": "AI Deadline",
+              "value": "={{ $('Get  colleges to remind').item.json['AI Deadline'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e7e81eca-d172-49e0-beb4-a54ecfed1b43",
+              "name": "Student Name",
+              "value": "={{ $json['Student Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e1f260b8-f9f3-473b-9979-dc4a410f1fba",
+              "name": "Email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "2fd43d66-7eda-4b53-a1f9-cba8a3342a0f",
+              "name": "Mobile",
+              "value": "={{ $json.Mobile }}",
+              "type": "string"
+            },
+            {
+              "id": "6e2053fe-55bb-438f-8eba-30958870824d",
+              "name": "Student College Name",
+              "value": "={{ $json['College Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "5aa2aff9-25e3-46cd-95ac-491ba0361d9f",
+              "name": "Course",
+              "value": "={{ $json.Course }}",
+              "type": "string"
+            },
+            {
+              "id": "45147448-5f7d-424a-a1c5-3e6425044b3f",
+              "name": "Remaining Amount",
+              "value": "={{ $json.MRP - $json['Amount Received']}}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        -320
+      ],
+      "id": "39e6df0e-8831-40bc-997f-d0f1ccac46b3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "980340735161065",
+        "recipientPhoneNumber": "={{ $('Loop Over Items').first().json.Mobile }}",
+        "template": "payment_reminder|en_US",
+        "components": {
+          "component": [
+            {
+              "bodyParameters": {
+                "parameter": [
+                  {
+                    "text": "=AI Saksham-{{ $('Loop Over Items').first().json.Mobile }}"
+                  },
+                  {
+                    "text": "=Rs.  {{ $('Loop Over Items').first().json['Remaining Amount'] }}"
+                  },
+                  {
+                    "text": "={{ $('Loop Over Items').first().json['AI Deadline'] }}"
+                  },
+                  {
+                    "text": "cancellation of seat"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        -224
+      ],
+      "id": "418005f0-3f32-4dfa-8916-74beb84076cc",
+      "name": "Send template",
+      "webhookId": "90508fca-e02a-46cf-b70b-5f86e80b3ac5",
+      "alwaysOutputData": true,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Jdf1GBnPpja9gRoA",
+          "name": "WhatsApp account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1248,
+        -320
+      ],
+      "id": "0e112079-0828-4607-8137-88ee3a2d0693",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "content": "# AI Second Installment Reminder",
+        "height": 576,
+        "width": 2656
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -688,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "37c66089-9f67-438a-aca5-c49170a59866",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18,
+              "triggerAtMinute": {}
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        624
+      ],
+      "id": "9d9e3f3b-62e6-4a94-92ef-3ec9947ba5e8",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI",
+          "mode": "list",
+          "cachedResultName": "New_Capabl Payment Details- Student (Responses)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1191549787,
+          "mode": "list",
+          "cachedResultName": "WhatsApp Group",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI/edit#gid=1191549787"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        624
+      ],
+      "id": "9d199fe0-545b-447d-80c1-84b0cae6776d",
+      "name": "Get College Payment Deadlines1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ki0w3ZRG3sLv5ush",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "108d9aae-cee1-4ea4-bad4-bd20643d8ae8",
+              "leftValue": "={{ $json['EV Second Installment Deadline'] }}",
+              "rightValue": "={{ Date.now() }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        624
+      ],
+      "id": "8381e97b-2ccd-4839-ad35-1bcd488d6850",
+      "name": "Get colleges with deadlines1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "22c7d669-6c14-4f6d-a266-14a3f89a05bc",
+              "leftValue": "={{ $json['Difference'] }}",
+              "rightValue": 172800000,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            },
+            {
+              "id": "0817fb59-85c9-4e23-86a6-a762bbb2c1b1",
+              "leftValue": "={{ $json['Difference'] }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        528
+      ],
+      "id": "708d20b2-0bdb-4ae1-ba77-cc6e4c910c0d",
+      "name": "Get  colleges to remind1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU",
+          "mode": "list",
+          "cachedResultName": "2025 Financial Plans",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 911736951,
+          "mode": "list",
+          "cachedResultName": "Student Pay",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU/edit#gid=911736951"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "College Name",
+              "lookupValue": "={{ $json['College Name'] }}"
+            },
+            {
+              "lookupColumn": "Course",
+              "lookupValue": "EV Saksham (Electric Vehicle)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        432
+      ],
+      "id": "33239dcb-80f2-4059-8333-bc5c16eedd9d",
+      "name": "Get all students1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ki0w3ZRG3sLv5ush",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "99d35009-9e8f-4cca-9416-8960419ae9ae",
+              "leftValue": "={{ $json['Amount Received'] }}",
+              "rightValue": 500,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        432
+      ],
+      "id": "23903571-3c85-4746-b55f-a57e653cd363",
+      "name": "Unpaid Students1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Second Deadline Due",
+        "emailType": "text",
+        "message": "=Dear {{ $json['Student Name'] }},\n\nYou are receiving this mail as a reminder of your fee payment for {{ $json.Course }} Course.\n\nPlease ensure that you pay the remaining amount of Rs. {{ $('Loop Over Items1').item.json['Remaining Amount'] }} before {{ $('Loop Over Items1').item.json['AI Deadline'] }} to maintain your seat in the program.\n\nKindly pay here - https://rzp.io/rzp/X7MGU6w\n\nKindly ignore this mail, if already paid in full.\n\nBest Reagrds,\nTeam Capabl",
+        "options": {
+          "senderName": "Capabl Support"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        432
+      ],
+      "id": "71dc2fb4-da77-4a45-aa94-4aa76560ee8d",
+      "name": "Send a message1",
+      "webhookId": "23515401-a181-42e4-946a-3176fb648d1f",
+      "alwaysOutputData": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Jylh5Q0CZk5yPG8K",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\nconst date  = $json['EV Second Installment Deadline'];\nconst deadline = new Date(date).getTime();\nconst now = Date.now()\n\nconst difference = Math.abs(deadline - now)\n\n$json['Difference'] = difference\nreturn $json;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        528
+      ],
+      "id": "10045734-c6ce-415b-a8b3-b89009218538",
+      "name": "Get current and deadline difference1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f60bfabb-582d-4189-9db1-58d0562da90b",
+              "name": "College Name",
+              "value": "={{ $('Get  colleges to remind1').item.json['College Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "997618c7-306e-40a8-8ca6-716adbf9f5c4",
+              "name": "AI Deadline",
+              "value": "={{ $('Get  colleges to remind1').item.json['AI Deadline'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e7e81eca-d172-49e0-beb4-a54ecfed1b43",
+              "name": "Student Name",
+              "value": "={{ $json['Student Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e1f260b8-f9f3-473b-9979-dc4a410f1fba",
+              "name": "Email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "2fd43d66-7eda-4b53-a1f9-cba8a3342a0f",
+              "name": "Mobile",
+              "value": "={{ $json.Mobile }}",
+              "type": "string"
+            },
+            {
+              "id": "6e2053fe-55bb-438f-8eba-30958870824d",
+              "name": "Student College Name",
+              "value": "={{ $json['College Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "5aa2aff9-25e3-46cd-95ac-491ba0361d9f",
+              "name": "Course",
+              "value": "={{ $json.Course }}",
+              "type": "string"
+            },
+            {
+              "id": "45147448-5f7d-424a-a1c5-3e6425044b3f",
+              "name": "Remaining Amount",
+              "value": "={{ $('Get College Payment Deadlines1').item.json['EV Second Installment'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        336
+      ],
+      "id": "ef6919e5-57da-48af-89e5-67a8742103ba",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\nconst deadline = $json['AI Deadline']\n\nconst parts = deadline.split('/');\n\nconst outputDate = `${parts[1]}/${parts[0]}/${parts[2]}`;\n\n$json['AI Deadline'] = outputDate;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        336
+      ],
+      "id": "354988c3-3a67-4c19-99ae-1f1afde066bb",
+      "name": "mm/dd to dd/mm1"
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "980340735161065",
+        "recipientPhoneNumber": "={{ $('Loop Over Items1').first().json.Mobile }}",
+        "template": "payment_reminder|en_US",
+        "components": {
+          "component": [
+            {
+              "bodyParameters": {
+                "parameter": [
+                  {
+                    "text": "=EV Saksham-{{ $('Loop Over Items1').first().json.Mobile }}"
+                  },
+                  {
+                    "text": "=Rs.  {{ $('Loop Over Items1').first().json['Remaining Amount'] }}"
+                  },
+                  {
+                    "text": "={{ $('Loop Over Items1').first().json['AI Deadline'] }}"
+                  },
+                  {
+                    "text": "cancellation of seat"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        432
+      ],
+      "id": "e68bc716-242d-4bb1-9cba-2805cb3bcf23",
+      "name": "Send template1",
+      "webhookId": "90508fca-e02a-46cf-b70b-5f86e80b3ac5",
+      "alwaysOutputData": true,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Jdf1GBnPpja9gRoA",
+          "name": "WhatsApp account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1296,
+        336
+      ],
+      "id": "47b31b12-99ca-46c1-b5d6-076ecd1147e3",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "content": "# EV Second Installment Reminder",
+        "height": 576,
+        "width": 2672,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -688,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "6c563cb8-eb09-4f7c-9f3c-1ab2680f1cbc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\nconst deadline = $json['AI Deadline']\n\nconst parts = deadline.split('/');\n\nconst outputDate = `${parts[1]}/${parts[0]}/${parts[2]}`;\n\n$json['AI Deadline'] = outputDate;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        -320
+      ],
+      "id": "c6e096bf-5899-427c-bfc8-161a961ef840",
+      "name": "mm/dd to dd/mm"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18,
+              "triggerAtMinute": {}
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        1280
+      ],
+      "id": "6b405648-f894-4794-bd19-517eea25d493",
+      "name": "Schedule Trigger2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI",
+          "mode": "list",
+          "cachedResultName": "New_Capabl Payment Details- Student (Responses)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1191549787,
+          "mode": "list",
+          "cachedResultName": "WhatsApp Group",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FPUy-kJWWp0rMglVaH8YAtetSujYaj_evewiV32B9mI/edit#gid=1191549787"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        1280
+      ],
+      "id": "73ad6c92-e2b8-4280-a982-28df2c21a64c",
+      "name": "Get College Payment Deadlines2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ki0w3ZRG3sLv5ush",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "108d9aae-cee1-4ea4-bad4-bd20643d8ae8",
+              "leftValue": "={{ $json['EV Third Installment Deadline'] }}",
+              "rightValue": "={{ Date.now() }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        1280
+      ],
+      "id": "34ebf8fb-f5ab-4d29-b054-6862388e6377",
+      "name": "Get colleges with deadlines2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "22c7d669-6c14-4f6d-a266-14a3f89a05bc",
+              "leftValue": "={{ $json['Difference'] }}",
+              "rightValue": 172800000,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            },
+            {
+              "id": "0817fb59-85c9-4e23-86a6-a762bbb2c1b1",
+              "leftValue": "={{ $json['Difference'] }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        1184
+      ],
+      "id": "e7f697bb-61d5-4378-a623-4c344384e7e0",
+      "name": "Get  colleges to remind2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU",
+          "mode": "list",
+          "cachedResultName": "2025 Financial Plans",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 911736951,
+          "mode": "list",
+          "cachedResultName": "Student Pay",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wh0ZkHWzE9YBvqO_XA2ERN-3WZZi14_tobmQ-jrzhhU/edit#gid=911736951"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "College Name",
+              "lookupValue": "={{ $json['College Name'] }}"
+            },
+            {
+              "lookupColumn": "Course",
+              "lookupValue": "EV Saksham (Electric Vehicle)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        1088
+      ],
+      "id": "a546a955-d144-4192-85fc-923fe1bbd269",
+      "name": "Get all students2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ki0w3ZRG3sLv5ush",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "829626e1-da49-43c2-9935-5351fd1d8e5f",
+              "leftValue": "={{ $json['Candidate status'] }}",
+              "rightValue": "Installment Live",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        1088
+      ],
+      "id": "95ef5b94-7dc2-49bb-9690-7c1cdf199630",
+      "name": "Unpaid Students2"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Second Deadline Due",
+        "emailType": "text",
+        "message": "=Dear {{ $json['Student Name'] }},\n\nYou are receiving this mail as a reminder of your fee payment for {{ $json.Course }} Course.\n\nPlease ensure that you pay the remaining amount of Rs. {{ $('Loop Over Items2').item.json['Remaining Amount'] }} before {{ $('Loop Over Items2').item.json['AI Deadline'] }} to maintain your seat in the program.\n\nKindly pay here - https://rzp.io/rzp/X7MGU6w\n\nKindly ignore this mail, if already paid in full.\n\nBest Reagrds,\nTeam Capabl",
+        "options": {
+          "senderName": "Capabl Support"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        1088
+      ],
+      "id": "29bb837c-a27e-4d11-bb80-06e3f57d54d6",
+      "name": "Send a message2",
+      "webhookId": "23515401-a181-42e4-946a-3176fb648d1f",
+      "alwaysOutputData": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Jylh5Q0CZk5yPG8K",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\nconst date  = $json['EV Second Installment Deadline'];\nconst deadline = new Date(date).getTime();\nconst now = Date.now()\n\nconst difference = Math.abs(deadline - now)\n\n$json['Difference'] = difference\nreturn $json;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        1184
+      ],
+      "id": "cbedd7f7-30a7-4266-958b-6191a7642624",
+      "name": "Get current and deadline difference2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f60bfabb-582d-4189-9db1-58d0562da90b",
+              "name": "College Name",
+              "value": "={{ $('Get  colleges to remind2').item.json['College Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "997618c7-306e-40a8-8ca6-716adbf9f5c4",
+              "name": "AI Deadline",
+              "value": "={{ $('Get  colleges to remind2').item.json['AI Deadline'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e7e81eca-d172-49e0-beb4-a54ecfed1b43",
+              "name": "Student Name",
+              "value": "={{ $json['Student Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e1f260b8-f9f3-473b-9979-dc4a410f1fba",
+              "name": "Email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "2fd43d66-7eda-4b53-a1f9-cba8a3342a0f",
+              "name": "Mobile",
+              "value": "={{ $json.Mobile }}",
+              "type": "string"
+            },
+            {
+              "id": "6e2053fe-55bb-438f-8eba-30958870824d",
+              "name": "Student College Name",
+              "value": "={{ $json['College Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "5aa2aff9-25e3-46cd-95ac-491ba0361d9f",
+              "name": "Course",
+              "value": "={{ $json.Course }}",
+              "type": "string"
+            },
+            {
+              "id": "45147448-5f7d-424a-a1c5-3e6425044b3f",
+              "name": "Remaining Amount",
+              "value": "={{ $('Get College Payment Deadlines2').item.json['EV Third Installment'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        992
+      ],
+      "id": "c8d205b6-5827-4cb2-a9af-c58f63ae4cbf",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\nconst deadline = $json['AI Deadline']\n\nconst parts = deadline.split('/');\n\nconst outputDate = `${parts[1]}/${parts[0]}/${parts[2]}`;\n\n$json['AI Deadline'] = outputDate;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        992
+      ],
+      "id": "8c6af224-ecd4-4789-b9e1-cd91b37e251f",
+      "name": "mm/dd to dd/mm2"
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "980340735161065",
+        "recipientPhoneNumber": "={{ $('Loop Over Items2').first().json.Mobile }}",
+        "template": "payment_reminder|en_US",
+        "components": {
+          "component": [
+            {
+              "bodyParameters": {
+                "parameter": [
+                  {
+                    "text": "=EV Saksham-{{ $('Loop Over Items2').first().json.Mobile }}"
+                  },
+                  {
+                    "text": "=Rs.  {{ $('Loop Over Items2').first().json['Remaining Amount'] }}"
+                  },
+                  {
+                    "text": "={{ $('Loop Over Items2').first().json['AI Deadline'] }}"
+                  },
+                  {
+                    "text": "cancellation of seat"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        1088
+      ],
+      "id": "720e3a58-13ac-4f07-a17f-f46b4f499aa7",
+      "name": "Send template2",
+      "webhookId": "90508fca-e02a-46cf-b70b-5f86e80b3ac5",
+      "alwaysOutputData": true,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Jdf1GBnPpja9gRoA",
+          "name": "WhatsApp account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1296,
+        992
+      ],
+      "id": "a63ea1eb-a966-4062-828c-67cff5fb07f3",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "content": "# EV Third Installment Reminder",
+        "height": 576,
+        "width": 2672,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -688,
+        928
+      ],
+      "typeVersion": 1,
+      "id": "eddac5dc-d59e-4253-8db2-ac78f4644f98",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get College Payment Deadlines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get College Payment Deadlines": {
+      "main": [
+        [
+          {
+            "node": "Get colleges with deadlines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get colleges with deadlines": {
+      "main": [
+        [
+          {
+            "node": "Get current and deadline difference",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get  colleges to remind": {
+      "main": [
+        [
+          {
+            "node": "Get all students",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get all students": {
+      "main": [
+        [
+          {
+            "node": "Unpaid Students",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpaid Students": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get current and deadline difference": {
+      "main": [
+        [
+          {
+            "node": "Get  colleges to remind",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "mm/dd to dd/mm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Send template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send template": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get College Payment Deadlines1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get College Payment Deadlines1": {
+      "main": [
+        [
+          {
+            "node": "Get colleges with deadlines1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get colleges with deadlines1": {
+      "main": [
+        [
+          {
+            "node": "Get current and deadline difference1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get  colleges to remind1": {
+      "main": [
+        [
+          {
+            "node": "Get all students1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get all students1": {
+      "main": [
+        [
+          {
+            "node": "Unpaid Students1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpaid Students1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Send template1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get current and deadline difference1": {
+      "main": [
+        [
+          {
+            "node": "Get  colleges to remind1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "mm/dd to dd/mm1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mm/dd to dd/mm1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send template1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mm/dd to dd/mm": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger2": {
+      "main": [
+        [
+          {
+            "node": "Get College Payment Deadlines2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get College Payment Deadlines2": {
+      "main": [
+        [
+          {
+            "node": "Get colleges with deadlines2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get colleges with deadlines2": {
+      "main": [
+        [
+          {
+            "node": "Get current and deadline difference2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get  colleges to remind2": {
+      "main": [
+        [
+          {
+            "node": "Get all students2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get all students2": {
+      "main": [
+        [
+          {
+            "node": "Unpaid Students2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpaid Students2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        [
+          {
+            "node": "Send template2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get current and deadline difference2": {
+      "main": [
+        [
+          {
+            "node": "Get  colleges to remind2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "mm/dd to dd/mm2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mm/dd to dd/mm2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send template2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2097f759-dd6e-4201-aced-e83bd316647c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "72e24b2287cf24a163ab9577e537989718571808576c237a391aa65496247d51"
+  },
+  "id": "ImTgglsRrbCPIKgiVLK4K",
+  "tags": []
+}
